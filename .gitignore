@@ -1,0 +1,5 @@
+echo ".env" > .gitignore
+echo "docker-data/" >> .gitignore
+echo "__pycache__/" >> .gitignore
+echo "*.pyc" >> .gitignore
+echo "node_modules/" >> .gitignore
