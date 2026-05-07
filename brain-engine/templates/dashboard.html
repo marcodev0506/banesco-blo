@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --banesco-green: {{ primary_green }};
+            --banesco-red: {{ accent_red }};
+            --bg-gray: #f4f7f6;
+            --text-dark: #333;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-gray); margin: 0; color: var(--text-dark); }
+        .header { background-color: var(--banesco-green); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .header h1 { margin: 0; font-size: 1.5rem; }
+        .container { padding: 2rem; display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; }
+        .card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .card h2 { border-bottom: 2px solid var(--banesco-green); padding-bottom: 0.5rem; margin-top: 0; color: var(--banesco-green); }
+        .rate-display { font-size: 2.5rem; font-weight: bold; color: var(--text-dark); text-align: center; margin: 1rem 0; }
+        .audit-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        .audit-table th { text-align: left; background-color: #eee; padding: 0.5rem; }
+        .audit-table td { padding: 0.5rem; border-bottom: 1px solid #eee; }
+        .status-aprobado { color: var(--banesco-green); font-weight: bold; }
+        .status-emergencia { color: var(--banesco-red); font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ title }}</h1>
+        <div>Estado: <span class="status-aprobado">Online</span></div>
+    </div>
+    <div class="container">
+        <div class="card">
+            <h2>Monitoreo de Mercado - Tasa BCV</h2>
+            <div class="rate-display">{{ "{:,.2f}".format(current_rate) }} VES</div>
+            <canvas id="rateChart" width="400" height="150"></canvas>
+        </div>
+        <div class="card">
+            <h2>Escudo de Liquidez - Reglas</h2>
+            {% for rule in rules %}
+            <div style="border: 1px solid #eee; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
+                <strong>{{ rule.name }}</strong><br>
+                Saldo Mínimo: {{ "{:,.2f}".format(rule.saldo_minimo) }} Bs.<br>
+                Umbral Dynamic Suggestion: <span class="status-emergencia">{{ rule.umbral_urgencia }} Bs</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="container" style="grid-template-columns: 1fr;">
+        <div class="card">
+            <h2>Historial de Auditoría Inmutable</h2>
+            <table class="audit-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Regla</th>
+                        <th>Tasa BCV</th>
+                        <th>Monto (Bs)</th>
+                        <th>Estatus</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in audit_logs %}
+                    <tr>
+                        <td>{{ log.timestamp.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>{{ log.rule_id }}</td>
+                        <td>{{ "{:,.4f}".format(log.rate_applied) }}</td>
+                        <td>{{ "{:,.2f}".format(log.amount_bs) }}</td>
+                        <td class="{% if 'URGENTE' in log.status %}status-emergencia{% else %}status-aprobado{% endif %}">
+                            {{ log.status }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Aquí simularemos datos históricos para el gráfico
+        const ctx = document.getElementById('rateChart').getContext('2d');
+        const rateChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'], // Simulado
+                datasets: [{
+                    label: 'Tasa BCV (USD/VES)',
+                    data: [492, 493.5, 492.8, 495, {{ current_rate }}],
+                    borderColor: '{{ primary_green }}',
+                    tension: 0.1,
+                    fill: false
+                }]
+            },
+            options: { scales: { y: { beginAtZero: false } } }
+        });
+    </script>
+</body>
+</html>

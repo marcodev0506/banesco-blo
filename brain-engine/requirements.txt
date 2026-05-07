@@ -6,3 +6,7 @@ pydantic
 httpx
 beautifulsoup4
 urllib3
+scikit-learn
+pandas
+numpy
+jinja2
